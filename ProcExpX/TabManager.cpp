@@ -19,12 +19,12 @@ void TabManager::BuildTabs() {
 				_procView.BuildWindow();
 				EndTabItem();
 			}
-			if (BeginTabItem("Services", nullptr, ImGuiTabItemFlags_None)) {
-				EndTabItem();
-			}
-			if (BeginTabItem("Log", nullptr, ImGuiTabItemFlags_None)) {
-				EndTabItem();
-			}
+			//if (BeginTabItem("Services", nullptr, ImGuiTabItemFlags_None)) {
+			//	EndTabItem();
+			//}
+			//if (BeginTabItem("Log", nullptr, ImGuiTabItemFlags_None)) {
+			//	EndTabItem();
+			//}
 			EndTabBar();
 		}
 	}

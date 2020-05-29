@@ -159,6 +159,7 @@
     <ClInclude Include="FormatHelper.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
+    <ClInclude Include="ImGuiExt.h" />
     <ClInclude Include="imgui_impl_dx12.h" />
     <ClInclude Include="imgui_impl_win32.h" />
     <ClInclude Include="imgui_internal.h" />
@@ -179,6 +180,7 @@
   <ItemGroup>
     <ClCompile Include="FormatHelper.cpp" />
     <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="ImGuiExt.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />
     <ClCompile Include="imgui_impl_dx12.cpp" />

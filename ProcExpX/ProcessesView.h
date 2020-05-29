@@ -7,6 +7,7 @@
 #include "WinSys.h"
 #include "ProcessInfoEx.h"
 #include "MessageBox.h"
+#include <atlstr.h>
 
 struct ImGuiTableSortSpecsColumn;
 class TabManager;
@@ -27,10 +28,13 @@ private:
 	void BuildViewMenu();
 	void BuildFileMenu();
 	void BuildProcessMenu();
+	void BuildToolBar();
 
 	void BuildPriorityClassMenu(WinSys::ProcessInfo* pi);
 	bool GotoFileLocation(WinSys::ProcessInfo* pi);
 	void TogglePause();
+
+	static CStringA ProcessAttributesToString(ProcessAttributes attributes);
 
 private:
 	WinSys::ProcessManager _pm;

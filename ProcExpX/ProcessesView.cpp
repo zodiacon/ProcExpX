@@ -11,6 +11,7 @@
 #include "TabManager.h"
 #include <shellapi.h>
 #include "FormatHelper.h"
+#include "ImGuiExt.h"
 
 using namespace ImGui;
 
@@ -27,6 +28,7 @@ void ProcessesView::BuildWindow() {
 		EndMenuBar();
 	}
 
+	BuildToolBar();
 	BuildTable();
 }
 
@@ -106,7 +108,7 @@ bool ProcessesView::TryKillProcess(WinSys::ProcessInfo* pi, bool& success) {
 }
 
 void ProcessesView::BuildTable() {
-	if (BeginTable("processes", 16, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollFreeze2Columns |
+	if (BeginTable("processes", 17, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollFreeze2Columns |
 		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersVFullHeight |
 		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Scroll | ImGuiTableFlags_RowBg)) {
 
@@ -126,6 +128,7 @@ void ProcessesView::BuildTable() {
 		TableSetupColumn("Peak Threads");
 		TableSetupColumn("Virtual Size");
 		TableSetupColumn("Peak Working Set");
+		TableSetupColumn("Attributes");
 
 		TableAutoHeaders();
 
@@ -181,8 +184,10 @@ void ProcessesView::BuildTable() {
 		static char buffer[64];
 		CStringA str;
 
-		int popCount;
+		int popCount = 3;
 		static bool selected = false;
+
+		auto orgBackColor = GetStyle().Colors[ImGuiCol_TableRowBg];
 
 		if (_killFailed) {
 			if (MessageBoxResult::StillOpen != SimpleMessageBox::ShowModal("Kill Process", "Failed to kill process!"))
@@ -199,29 +204,25 @@ void ProcessesView::BuildTable() {
 				if (special)
 					PopStyleColor(popCount);
 
-				auto color = ImVec4(0, 0, 1, .8f);// GetStyle().Colors[ImGuiCol_TextSelectedBg];
-
-				special = px.IsNew() || px.IsTerminated() || p == _selectedProcess;
+				auto colors = px.GetColors();
+				special = colors.first.x >= 0 || p == _selectedProcess;
 				if (special) {
 					if (p == _selectedProcess) {
+						const auto& color = GetStyle().Colors[ImGuiCol_TextSelectedBg];
 						PushStyleColor(ImGuiCol_TableRowBg, color);
 						PushStyleColor(ImGuiCol_TableRowBgAlt, color);
-						PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
-						popCount = 3;
+						PushStyleColor(ImGuiCol_Text, GetStyle().Colors[ImGuiCol_Text]);
 					}
 					else {
-						PushStyleColor(ImGuiCol_TableRowBg, px.IsTerminated() ? red : green);
-						PushStyleColor(ImGuiCol_TableRowBgAlt, px.IsTerminated() ? red : green);
-						popCount = 2;
+						PushStyleColor(ImGuiCol_TableRowBg, colors.first);
+						PushStyleColor(ImGuiCol_TableRowBgAlt, colors.first);
+						PushStyleColor(ImGuiCol_Text, colors.second);
 					}
 				}
 
 				TableSetColumnIndex(0);
 				str.Format("%ws", p->GetImageName().c_str());
-				PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(1, 1, 0, .5f));
-
 				Selectable(str, false, ImGuiSelectableFlags_SpanAllColumns);
-				PopStyleColor();
 
 				::StringCchPrintfA(buffer, sizeof(buffer), "##%d", i);
 
@@ -234,10 +235,6 @@ void ProcessesView::BuildTable() {
 						_modalOpen = true;
 
 					if (BeginPopupContextItem(buffer)) {
-						if (special) {
-							PopStyleColor();
-							popCount--;
-						}
 						_selectedProcess = p;
 						BuildPriorityClassMenu(p.get());
 						Separator();
@@ -247,10 +244,6 @@ void ProcessesView::BuildTable() {
 						Separator();
 						if (MenuItem("Go to file location")) {
 							GotoFileLocation(_selectedProcess.get());
-						}
-						if (special) {
-							PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
-							popCount++;
 						}
 						EndPopup();
 					}
@@ -271,25 +264,33 @@ void ProcessesView::BuildTable() {
 					Text("%4u", p->SessionId);
 				}
 
-				if (TableSetColumnIndex(3))
+				if (TableSetColumnIndex(3)) {
 					if (p->CPU > 0 && !px.IsTerminated()) {
 						auto value = p->CPU / 10000.0f;
 						str.Format("%7.2f  ", value);
-						if (p->Id && value > 1.0f) {
-							auto color = ImColor::HSV((100 - value) * 50 / 100 / 255.0f, .7f, .4f);
-							PushStyleColor(ImGuiCol_ChildBg, color.Value);
-							auto size = CalcTextSize(str);
-							CStringA id;
-							id.Format("cpu%d", i);
-							BeginChild(id, size, false, ImGuiWindowFlags_None);
+						ImVec4 color;
+						auto customColors = p->Id && value > 1.0f;
+						if(customColors) {
+							color = ImColor::HSV((100 - value) * 50 / 100 / 255.0f, .7f, .4f).Value;
+						}
+						else {
+							color = orgBackColor;
+						}
+						PushStyleColor(ImGuiCol_ChildBg, color);
+						auto size = CalcTextSize(str);
+						CStringA id;
+						id.Format("cpu%d", i);
+						BeginChild(id, size, false, ImGuiWindowFlags_None);
+						if (customColors) {
 							TextColored(ImVec4(1, 1, 1, 1), str);
-							EndChild();
-							PopStyleColor();
 						}
 						else {
 							TextUnformatted(str);
 						}
+						EndChild();
+						PopStyleColor();
 					}
+				}
 
 				if (TableSetColumnIndex(4)) {
 					if (p->ParentId > 0) {
@@ -338,6 +339,9 @@ void ProcessesView::BuildTable() {
 
 				if (TableSetColumnIndex(15))
 					Text("%12s K", FormatHelper::FormatWithCommas(p->PeakWorkingSetSize >> 10));
+
+				if (TableSetColumnIndex(16))
+					TextUnformatted(ProcessAttributesToString(px.GetAttributes()));
 			}
 		}
 		if (special)
@@ -386,8 +390,16 @@ void ProcessesView::BuildProcessMenu() {
 			if (TryKillProcess(_selectedProcess.get(), success) && !success)
 				_killFailed = true;
 		}
-		Separator();
+		//Separator();
 		ImGui::EndMenu();
+	}
+}
+
+void ProcessesView::BuildToolBar() {
+	Separator();
+	if (ButtonEnabled("Kill", _selectedProcess != nullptr)) {
+		bool success;
+		TryKillProcess(_selectedProcess.get(), success);
 	}
 }
 
@@ -442,6 +454,29 @@ void ProcessesView::TogglePause() {
 		_oldInterval = _updateInterval;
 		_updateInterval = 0;
 	}
+}
+
+CStringA ProcessesView::ProcessAttributesToString(ProcessAttributes attributes) {
+	CStringA text;
+
+	static const struct {
+		ProcessAttributes Attribute;
+		const char* Text;
+	} attribs[] = {
+		{ ProcessAttributes::Managed, "Managed" },
+		{ ProcessAttributes::Immersive, "Immersive" },
+		{ ProcessAttributes::Protected, "Protected" },
+		{ ProcessAttributes::Secure, "Secure" },
+		{ ProcessAttributes::InJob, "In Job" },
+		{ ProcessAttributes::Service, "Service" },
+	};
+
+	for (auto& item : attribs)
+		if ((item.Attribute & attributes) == item.Attribute)
+			text += CStringA(item.Text) + ", ";
+	if (!text.IsEmpty())
+		text = text.Mid(0, text.GetLength() - 2);
+	return text;
 }
 
 

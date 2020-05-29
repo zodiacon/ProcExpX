@@ -10,6 +10,8 @@
 #include <tchar.h>
 #include "MainMenu.h"
 #include "ProcessesView.h"
+#include "resource.h"
+#include "TabManager.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -62,6 +64,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
 	::RegisterClassEx(&wc);
 	HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("Process Explorer X"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+	::SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)::LoadImage(hInstance, MAKEINTRESOURCE(IDI_APP), IMAGE_ICON, 32, 32, 0));
+	::SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)::LoadImage(hInstance, MAKEINTRESOURCE(IDI_APP), IMAGE_ICON, 16, 16, 0));
 
 	// Initialize Direct3D
 	if (!CreateDeviceD3D(hwnd)) {
@@ -79,7 +83,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
@@ -107,19 +111,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 	//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 	//IM_ASSERT(font != NULL);
 
-	auto font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Consola.ttf", 14.0f);
-	
+	io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Consola.ttf", 14.0f);
+	io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Arial.ttf", 15.0f);
+
 	// Our state
 	bool show_demo_window = false;
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	// Main loop
-	MSG msg;
-	ZeroMemory(&msg, sizeof(msg));
+	MSG msg = { 0 };
 
-	ProcessesView procView(hwnd);
-	DWORD64 tick = 0;
+	TabManager tabs(hwnd);
 
 	while (msg.message != WM_QUIT) {
 		// Poll and handle messages (inputs, window resize, etc.)
@@ -133,17 +136,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 			continue;
 		}
 
-
 		// Start the Dear ImGui frame
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		{
-			//BuildMainMenu();
-			procView.BuildWindow();
-		}
-
+		//BuildMainMenu();
+		tabs.BuildTabs();
 
 		// Rendering
 		FrameContext* frameCtxt = WaitForNextFrameResources();
@@ -187,7 +186,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 	ImGui::DestroyContext();
 
 	CleanupDeviceD3D();
-	::DestroyWindow(hwnd);
 	::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
 	return 0;

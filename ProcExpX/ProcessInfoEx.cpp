@@ -1,5 +1,10 @@
 #include <Windows.h>
 #include "ProcessInfoEx.h"
+#include "Processes.h"
+
+ImVec4 ProcessInfoEx::GetColor() const {
+	return ImVec4();
+}
 
 bool ProcessInfoEx::Update() {
 	if (!_isNew && !_isTerminated)
@@ -22,4 +27,19 @@ void ProcessInfoEx::Term(uint32_t ms) {
 	_isNew = false;
 	_isTerminated = true;
 	_expiryTime = ::GetTickCount64() + ms;
+}
+
+const std::wstring& ProcessInfoEx::GetExecutablePath() const {
+	if (_executablePath.empty() && _pi->Id != 0) {
+		const auto& path = _pi->GetNativeImagePath();
+		if (path[0] == L'\\') {
+			auto process = WinSys::Process::OpenById(_pi->Id, WinSys::ProcessAccessMask::QueryLimitedInformation);
+			if (process)
+				_executablePath = process->GetFullImageName();
+		}
+		else {
+			_executablePath = path;
+		}
+	}
+	return _executablePath;
 }

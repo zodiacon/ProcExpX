@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <ProcessInfo.h>
+#include "imgui.h"
 
 class ProcessInfoEx {
 public:
@@ -14,13 +15,18 @@ public:
 	bool IsTerminated() const {
 		return _isTerminated;
 	}
+
+	ImVec4 GetColor() const;
+
 	bool Update();
 	void New(uint32_t ms);
 	void Term(uint32_t ms);
+	const std::wstring& GetExecutablePath() const;
 
 private:
 	DWORD64 _expiryTime;
 	WinSys::ProcessInfo* _pi;
+	mutable std::wstring _executablePath;
 	bool _isNew : 1 = false, _isTerminated : 1 = false;
 };
 

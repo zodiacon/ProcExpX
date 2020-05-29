@@ -9,17 +9,11 @@
 #include "MessageBox.h"
 
 struct ImGuiTableSortSpecsColumn;
-
-enum class Theme {
-	Classic,
-	Light,
-	Dark,
-	Custom
-};
+class TabManager;
 
 class ProcessesView {
 public:
-	ProcessesView(HWND hMainWnd);
+	ProcessesView(TabManager& tm);
 	void BuildWindow();
 
 private:
@@ -27,13 +21,16 @@ private:
 	ProcessInfoEx& GetProcessInfoEx(WinSys::ProcessInfo* pi) const;
 	void DoUpdate();
 	bool KillProcess(uint32_t id);
-	bool TryKillProcess(WinSys::ProcessInfo* pi);
+	bool TryKillProcess(WinSys::ProcessInfo* pi, bool& success);
 
 	void BuildTable();
-	void BuildOptionsMenu();
 	void BuildViewMenu();
 	void BuildFileMenu();
 	void BuildProcessMenu();
+
+	void BuildPriorityClassMenu(WinSys::ProcessInfo* pi);
+	bool GotoFileLocation(WinSys::ProcessInfo* pi);
+	void TogglePause();
 
 private:
 	WinSys::ProcessManager _pm;
@@ -41,9 +38,8 @@ private:
 	std::vector<std::shared_ptr<WinSys::ProcessInfo>> _processes;
 	mutable std::unordered_map<WinSys::ProcessOrThreadKey, ProcessInfoEx> _processesEx;
 	const ImGuiTableSortSpecsColumn* _specs = nullptr;
-	HWND _hMainWnd;
 	std::shared_ptr <WinSys::ProcessInfo> _selectedProcess;
-	int _updateInterval = 1000;
-	Theme _theme = Theme::Dark;
-	bool _modalOpen = false;
+	int _updateInterval = 1000, _oldInterval;
+	TabManager& _tm;
+	bool _modalOpen : 1 = false, _killFailed : 1 = false;
 };

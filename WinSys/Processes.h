@@ -21,17 +21,20 @@ namespace WinSys {
 		Terminate = PROCESS_TERMINATE,
 		QueryInformation = PROCESS_QUERY_INFORMATION,
 		QueryLimitedInformation = PROCESS_QUERY_LIMITED_INFORMATION,
-		SuspendResume = PROCESS_SUSPEND_RESUME
+		SuspendResume = PROCESS_SUSPEND_RESUME,
+		SetInformation = PROCESS_SET_INFORMATION,
+		SetlimitedInformation = PROCESS_SET_LIMITED_INFORMATION,
 	};
 	DEFINE_ENUM_FLAG_OPERATORS(ProcessAccessMask);
 
-	enum class ProcessPriorityClass {
+	enum class ProcessPriorityClass : uint32_t {
 		Normal = NORMAL_PRIORITY_CLASS,
 		BelowNormal = BELOW_NORMAL_PRIORITY_CLASS,
 		AboveNormal = ABOVE_NORMAL_PRIORITY_CLASS,
 		Idle = IDLE_PRIORITY_CLASS,
 		High = HIGH_PRIORITY_CLASS,
-		Realtime = REALTIME_PRIORITY_CLASS
+		Realtime = REALTIME_PRIORITY_CLASS,
+		Error = 0,
 	};
 
 	enum class IntegrityLevel : uint32_t {
@@ -116,6 +119,9 @@ namespace WinSys {
 		IntegrityLevel GetIntegrityLevel() const;
 		int GetMemoryPriority() const;
 		IoPriority GetIoPriority() const;
+		ProcessPriorityClass GetPriorityClass() const;
+		bool SetPriorityClass(ProcessPriorityClass priority);
+
 		uint32_t GetId() const;
 
 		HANDLE GetHandle() const;

@@ -42,6 +42,13 @@ struct Process::Impl {
 	bool IsInJob(HANDLE hJob = nullptr) const;
 	bool IsWow64Process() const;
 	bool IsManaged() const;
+	ProcessPriorityClass GetPriorityClass() const {
+		auto pc = ::GetPriorityClass(_handle);
+		return pc == 0 ? ProcessPriorityClass::Error : (ProcessPriorityClass)pc;
+	}
+	bool SetPriorityClass(ProcessPriorityClass pc) {
+		return ::SetPriorityClass(_handle, (DWORD)pc);
+	}
 
 	uint32_t GetId() const {
 		return ::GetProcessId(_handle);
@@ -214,6 +221,14 @@ int Process::GetMemoryPriority() const {
 
 IoPriority Process::GetIoPriority() const {
 	return _impl->GetIoPriority();
+}
+
+WinSys::ProcessPriorityClass Process::GetPriorityClass() const {
+	return _impl->GetPriorityClass();
+}
+
+bool Process::SetPriorityClass(ProcessPriorityClass priority) {
+	return _impl->SetPriorityClass(priority);
 }
 
 uint32_t WinSys::Process::GetId() const {

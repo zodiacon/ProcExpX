@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <wil\resource.h>
 
 namespace WinSys {
 	enum class ThreadPriority {

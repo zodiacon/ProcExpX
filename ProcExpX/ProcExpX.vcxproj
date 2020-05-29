@@ -156,6 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FormatHelper.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="imgui_impl_dx12.h" />
@@ -164,25 +165,35 @@
     <ClInclude Include="imstb_rectpack.h" />
     <ClInclude Include="imstb_textedit.h" />
     <ClInclude Include="imstb_truetype.h" />
+    <ClInclude Include="LogView.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="MessageBox.h" />
+    <ClInclude Include="NtHelper.h" />
     <ClInclude Include="ProcessesView.h" />
     <ClInclude Include="ProcessInfoEx.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="SortHelper.h" />
+    <ClInclude Include="TabManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FormatHelper.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />
     <ClCompile Include="imgui_impl_dx12.cpp" />
     <ClCompile Include="imgui_impl_win32.cpp" />
     <ClCompile Include="imgui_widgets.cpp" />
+    <ClCompile Include="LogView.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="MessageBox.cpp" />
+    <ClCompile Include="NtHelper.cpp" />
     <ClCompile Include="ProcessesView.cpp" />
     <ClCompile Include="ProcessInfoEx.cpp" />
+    <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SortHelper.cpp" />
+    <ClCompile Include="TabManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\WinSys\WinSys.vcxproj">
@@ -191,6 +202,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ProcExpX.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\processes.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

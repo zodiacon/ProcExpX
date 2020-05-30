@@ -37,7 +37,7 @@ private:
 	static CStringA ProcessAttributesToString(ProcessAttributes attributes);
 
 private:
-	WinSys::ProcessManager _pm;
+	WinSys::ProcessManager& _pm;
 	DWORD64 _tick = 0;
 	std::vector<std::shared_ptr<WinSys::ProcessInfo>> _processes;
 	mutable std::unordered_map<WinSys::ProcessOrThreadKey, ProcessInfoEx> _processesEx;

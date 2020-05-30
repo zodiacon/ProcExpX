@@ -12,10 +12,11 @@
 #include <shellapi.h>
 #include "FormatHelper.h"
 #include "ImGuiExt.h"
+#include "Globals.h"
 
 using namespace ImGui;
 
-ProcessesView::ProcessesView(TabManager& tm) : _tm(tm) {
+ProcessesView::ProcessesView(TabManager& tm) : _tm(tm), _pm(Globals::Get().ProcMgr) {
 }
 
 void ProcessesView::BuildWindow() {
@@ -108,6 +109,8 @@ bool ProcessesView::TryKillProcess(WinSys::ProcessInfo* pi, bool& success) {
 }
 
 void ProcessesView::BuildTable() {
+	auto& g = Globals::Get();
+
 	if (BeginTable("processes", 17, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollFreeze2Columns |
 		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersVFullHeight |
 		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Scroll | ImGuiTableFlags_RowBg)) {
@@ -204,7 +207,7 @@ void ProcessesView::BuildTable() {
 				if (special)
 					PopStyleColor(popCount);
 
-				auto colors = px.GetColors();
+				auto colors = px.GetColors(_pm);
 				special = colors.first.x >= 0 || p == _selectedProcess;
 				if (special) {
 					if (p == _selectedProcess) {
@@ -258,7 +261,9 @@ void ProcessesView::BuildTable() {
 				}
 
 				TableSetColumnIndex(1);
+				PushFont(g.MonoFont);
 				Text("%6u (0x%05X)", p->Id, p->Id);
+				PopFont();
 
 				if (TableSetColumnIndex(2)) {
 					Text("%4u", p->SessionId);
@@ -266,6 +271,7 @@ void ProcessesView::BuildTable() {
 
 				if (TableSetColumnIndex(3)) {
 					if (p->CPU > 0 && !px.IsTerminated()) {
+						PushFont(g.MonoFont);
 						auto value = p->CPU / 10000.0f;
 						str.Format("%7.2f  ", value);
 						ImVec4 color;
@@ -289,6 +295,7 @@ void ProcessesView::BuildTable() {
 						}
 						EndChild();
 						PopStyleColor();
+						PopFont();
 					}
 				}
 
@@ -296,10 +303,16 @@ void ProcessesView::BuildTable() {
 					if (p->ParentId > 0) {
 						auto parent = _pm.GetProcessById(p->ParentId);
 						if (parent && parent->CreateTime < p->CreateTime) {
-							Text("%6d (%ws)", parent->Id, parent->GetImageName().c_str());
+							PushFont(g.MonoFont);
+							Text("%6d ", parent->Id);
+							PopFont();
+							SameLine();
+							Text("(%ws)", parent->GetImageName().c_str());
 						}
 						else {
+							PushFont(g.MonoFont);
 							Text("%6d", p->ParentId);
+							PopFont();
 						}
 					}
 				}
@@ -307,41 +320,62 @@ void ProcessesView::BuildTable() {
 				if (TableSetColumnIndex(5))
 					TextUnformatted(W2CA(CTime(*(FILETIME*)&p->CreateTime).Format(L"%x %X")));
 
-				if (TableSetColumnIndex(6))
+				if (TableSetColumnIndex(6)) {
+					PushFont(g.MonoFont);
 					Text("%12s K", FormatHelper::FormatWithCommas(p->PrivatePageCount >> 10));
+					PopFont();
+				}
 
-				if (TableSetColumnIndex(7))
+				if (TableSetColumnIndex(7)) {
+					PushFont(g.MonoFont);
 					Text("%5d", p->BasePriority);
-
-				if (TableSetColumnIndex(8))
+					PopFont();
+				}
+				if (TableSetColumnIndex(8)) {
+					PushFont(g.MonoFont);
 					Text("%6d", p->ThreadCount);
-
-				if (TableSetColumnIndex(9))
+					PopFont();
+				}
+				if (TableSetColumnIndex(9)) {
+					PushFont(g.MonoFont);
 					Text("%6d", p->HandleCount);
-
-				if (TableSetColumnIndex(10))
+					PopFont();
+				}
+				if (TableSetColumnIndex(10)) {
+					PushFont(g.MonoFont);
 					Text("%12s K", FormatHelper::FormatWithCommas(p->WorkingSetSize >> 10));
-
+					PopFont();
+				}
 				if (TableSetColumnIndex(11))
 					Text("%ws", px.GetExecutablePath().c_str());
 
 				if (TableSetColumnIndex(12)) {
+					PushFont(g.MonoFont);
 					auto total = p->UserTime + p->KernelTime;
 					Text("%ws", (PCWSTR)FormatHelper::TimeSpanToString(total));
+					PopFont();
 				}
 
 				if (TableSetColumnIndex(13)) {
+					PushFont(g.MonoFont);
 					Text("%6d", p->PeakThreads);
+					PopFont();
 				}
 
-				if (TableSetColumnIndex(14))
+				if (TableSetColumnIndex(14)) {
+					PushFont(g.MonoFont);
 					Text("%14s K", FormatHelper::FormatWithCommas(p->VirtualSize >> 10));
+					PopFont();
+				}
 
-				if (TableSetColumnIndex(15))
+				if (TableSetColumnIndex(15)) {
+					PushFont(g.MonoFont);
 					Text("%12s K", FormatHelper::FormatWithCommas(p->PeakWorkingSetSize >> 10));
+					PopFont();
+				}
 
 				if (TableSetColumnIndex(16))
-					TextUnformatted(ProcessAttributesToString(px.GetAttributes()));
+					TextUnformatted(ProcessAttributesToString(px.GetAttributes(_pm)));
 			}
 		}
 		if (special)
@@ -467,8 +501,8 @@ CStringA ProcessesView::ProcessAttributesToString(ProcessAttributes attributes) 
 		{ ProcessAttributes::Immersive, "Immersive" },
 		{ ProcessAttributes::Protected, "Protected" },
 		{ ProcessAttributes::Secure, "Secure" },
-		{ ProcessAttributes::InJob, "In Job" },
 		{ ProcessAttributes::Service, "Service" },
+		{ ProcessAttributes::InJob, "In Job" },
 	};
 
 	for (auto& item : attribs)

@@ -4,6 +4,8 @@
 #include <ProcessInfo.h>
 #include "imgui.h"
 
+class WinSys::ProcessManager;
+
 enum class ProcessAttributes {
 	NotComputed = -1,
 	None = 0,
@@ -28,8 +30,8 @@ public:
 		return _isTerminated;
 	}
 
-	std::pair<const ImVec4&, const ImVec4&> GetColors() const;
-	ProcessAttributes GetAttributes() const;
+	std::pair<const ImVec4&, const ImVec4&> GetColors(WinSys::ProcessManager& pm) const;
+	ProcessAttributes GetAttributes(WinSys::ProcessManager& pm) const;
 
 	bool Update();
 	void New(uint32_t ms);

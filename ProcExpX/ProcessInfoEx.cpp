@@ -2,9 +2,9 @@
 #include "ProcessInfoEx.h"
 #include "Processes.h"
 #include "colors.h"
+#include "ProcessManager.h"
 
-
-std::pair<const ImVec4&, const ImVec4&> ProcessInfoEx::GetColors() const {
+std::pair<const ImVec4&, const ImVec4&> ProcessInfoEx::GetColors(WinSys::ProcessManager& pm) const {
 	using namespace ImGui;
 	static const ImVec4 red(.8f, 0, 0, .8f), green(0, .6f, 0, .8f);
 	static const ImVec4 white(1, 1, 1, 1), black(0, 0, 0, 1);
@@ -15,7 +15,7 @@ std::pair<const ImVec4&, const ImVec4&> ProcessInfoEx::GetColors() const {
 		return { green, white };
 
 	if (_color.w == 0) {
-		auto attributes = GetAttributes();
+		auto attributes = GetAttributes(pm);
 		auto alpha = .7f;
 		if ((attributes & ProcessAttributes::Managed) == ProcessAttributes::Managed) {
 			_color = ImVec4(1, 1, 0, alpha);
@@ -34,10 +34,16 @@ std::pair<const ImVec4&, const ImVec4&> ProcessInfoEx::GetColors() const {
 			_color = ImVec4(.6f, .2f, .7f, alpha);
 			_textColor = black;
 		}
-		//else if ((attributes & ProcessAttributes::InJob) == ProcessAttributes::InJob) {
-		//	_color = ImVec4(.5f, .7f, .2f, alpha);
-		//	_textColor = white;
-		//}
+		else if ((attributes & ProcessAttributes::Service) == ProcessAttributes::Service) {
+			_color = StandardColors::Pink;
+			_color.w = alpha;
+			_textColor = black;
+		}
+		else if ((attributes & ProcessAttributes::InJob) == ProcessAttributes::InJob) {
+			_color = StandardColors::Brown;
+			_color.w = alpha;
+			_textColor = white;
+		}
 	}
 	if (_color.w == 0) {
 		_color = ImVec4(-1, 0, 0, 0);
@@ -46,7 +52,7 @@ std::pair<const ImVec4&, const ImVec4&> ProcessInfoEx::GetColors() const {
 	return { _color, _textColor };
 }
 
-ProcessAttributes ProcessInfoEx::GetAttributes() const {
+ProcessAttributes ProcessInfoEx::GetAttributes(WinSys::ProcessManager& pm) const {
 	if (_attributes == ProcessAttributes::NotComputed) {
 		_attributes = ProcessAttributes::None;
 		auto process = WinSys::Process::OpenById(_pi->Id, WinSys::ProcessAccessMask::QueryLimitedInformation);
@@ -61,6 +67,9 @@ ProcessAttributes ProcessInfoEx::GetAttributes() const {
 				_attributes |= ProcessAttributes::Secure;
 			if (process->IsInJob())
 				_attributes |= ProcessAttributes::InJob;
+			auto parent = pm.GetProcessById(_pi->ParentId);
+			if (parent && ::_wcsicmp(parent->GetImageName().c_str(), L"services.exe") == 0)
+				_attributes |= ProcessAttributes::Service;
 		}
 	}
 	return _attributes;

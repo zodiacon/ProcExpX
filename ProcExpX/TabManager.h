@@ -11,13 +11,12 @@ enum class Theme {
 
 class TabManager {
 public:
-	TabManager(HWND hwnd);
+	TabManager();
 	void BuildTabs();
 	void BuildOptionsMenu();
 
 private:
 	ProcessesView _procView;
 	Theme _theme = Theme::Dark;
-	HWND _hwnd;
 };
 

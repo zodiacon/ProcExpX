@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="FormatHelper.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="ImGuiExt.h" />
@@ -179,6 +180,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FormatHelper.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="ImGuiExt.cpp" />
     <ClCompile Include="imgui_demo.cpp" />

@@ -12,6 +12,7 @@
 #include "ProcessesView.h"
 #include "resource.h"
 #include "TabManager.h"
+#include "Globals.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -111,8 +112,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 	//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 	//IM_ASSERT(font != NULL);
 
-	io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Consola.ttf", 14.0f);
-	io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Arial.ttf", 15.0f);
+	Globals g(hwnd);
+
+	g.RegFont = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Tahoma.ttf", 16.0f);
+	g.MonoFont = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Consola.ttf", 15.0f);
 
 	// Our state
 	bool show_demo_window = false;
@@ -121,8 +124,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 
 	// Main loop
 	MSG msg = { 0 };
-
-	TabManager tabs(hwnd);
 
 	while (msg.message != WM_QUIT) {
 		// Poll and handle messages (inputs, window resize, etc.)
@@ -142,7 +143,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 		ImGui::NewFrame();
 
 		//BuildMainMenu();
-		tabs.BuildTabs();
+		Globals::Get().GetTabManager().BuildTabs();
 
 		// Rendering
 		FrameContext* frameCtxt = WaitForNextFrameResources();

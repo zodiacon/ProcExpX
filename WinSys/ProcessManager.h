@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include "Keys.h"
+#include <string>
 
 namespace WinSys {
 	struct ProcessInfo;

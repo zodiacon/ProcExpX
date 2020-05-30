@@ -1,10 +1,11 @@
 #include <Windows.h>
 #include "TabManager.h"
 #include "imgui.h"
+#include "Globals.h"
 
 using namespace ImGui;
 
-TabManager::TabManager(HWND hwnd) : _hwnd(hwnd), _procView(*this) {
+TabManager::TabManager() : _procView(*this) {
 }
 
 void TabManager::BuildTabs() {
@@ -35,7 +36,7 @@ void TabManager::BuildOptionsMenu() {
 	if (BeginMenu("Options")) {
 		static bool alwaysOnTop;
 		if (MenuItem("Always On Top", nullptr, &alwaysOnTop)) {
-			::SetWindowPos(_hwnd, !alwaysOnTop ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+			::SetWindowPos(Globals::Get().GetMainHwnd(), !alwaysOnTop ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 		}
 		Separator();
 		if (BeginMenu("Theme")) {

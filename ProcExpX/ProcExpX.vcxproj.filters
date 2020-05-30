@@ -42,9 +42,6 @@
     <ClInclude Include="imstb_truetype.h">
       <Filter>Imgui</Filter>
     </ClInclude>
-    <ClInclude Include="MainMenu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ProcessesView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,9 +66,6 @@
     <ClInclude Include="LogView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NtHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FormatHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -88,6 +82,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="colors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessProperties.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowProperties.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -113,9 +113,6 @@
     <ClCompile Include="imgui_widgets.cpp">
       <Filter>Imgui</Filter>
     </ClCompile>
-    <ClCompile Include="MainMenu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ProcessesView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -137,9 +134,6 @@
     <ClCompile Include="LogView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NtHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FormatHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -153,6 +147,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessProperties.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowProperties.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

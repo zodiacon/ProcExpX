@@ -16,17 +16,18 @@ ProcessesView::ProcessesView(TabManager& tm) : _tm(tm), _pm(Globals::Get().ProcM
 }
 
 void ProcessesView::BuildWindow() {
-	if (BeginMenuBar()) {
-		BuildFileMenu();
-		BuildViewMenu();
-		BuildProcessMenu();
-		_tm.BuildOptionsMenu();
-
-		EndMenuBar();
-	}
-
 	BuildToolBar();
 	BuildTable();
+	std::vector<WinSys::ProcessOrThreadKey> keys;
+	for (const auto& [key, p] : _processProperties) {
+		if (p->WindowOpen)
+			BuildPropertiesWindow(p.get());
+		else
+			keys.push_back(p->GetProcess()->Key);
+	}
+
+	for (auto& key : keys)
+		_processProperties.erase(key);
 }
 
 void ProcessesView::DoSort(int col, bool asc) {
@@ -49,6 +50,7 @@ void ProcessesView::DoSort(int col, bool asc) {
 			case 14: return SortHelper::SortNumbers(p1->VirtualSize, p2->VirtualSize, asc);
 			case 15: return SortHelper::SortNumbers(p1->PeakWorkingSetSize, p2->PeakWorkingSetSize, asc);
 			case 16: return SortHelper::SortNumbers(GetProcessInfoEx(p1.get()).GetAttributes(_pm), GetProcessInfoEx(p2.get()).GetAttributes(_pm), asc);
+			case 17: return SortHelper::SortNumbers(p1->PagedPoolUsage, p2->PagedPoolUsage, asc);
 
 		}
 		return false;
@@ -108,10 +110,10 @@ bool ProcessesView::TryKillProcess(WinSys::ProcessInfo* pi, bool& success) {
 void ProcessesView::BuildTable() {
 	auto& g = Globals::Get();
 
-	if (BeginTable("processes", 17, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollFreeze2Columns |
+	//(ImVec2(size.x, size.y / 2));
+	if (BeginTable("processes", 18, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollFreeze2Columns |
 		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersVFullHeight |
-		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Scroll | ImGuiTableFlags_RowBg)) {
-
+		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Scroll | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable)) {
 		TableSetupColumn("Name", ImGuiTableColumnFlags_None);
 		TableSetupColumn("Id");
 		TableSetupColumn("Session");
@@ -129,6 +131,7 @@ void ProcessesView::BuildTable() {
 		TableSetupColumn("Virtual Size");
 		TableSetupColumn("Peak Working Set");
 		TableSetupColumn("Attributes");
+		TableSetupColumn("Paged Pool");
 
 		TableAutoHeaders();
 
@@ -154,10 +157,20 @@ void ProcessesView::BuildTable() {
 			_tick = ::GetTickCount64();
 		}
 
+
+		CString filter;
+		if (*_filterText) {
+			filter = _filterText;
+			filter.MakeLower();
+		}
+		std::vector<int> indices;
+		indices.reserve(_processes.size());
+
 		auto count = static_cast<int>(_processes.size());
 		for (int i = 0; i < count; i++) {
 			const auto& p = _processes[i];
 			auto& px = GetProcessInfoEx(p.get());
+			px.Filtered = false;
 			if (px.Update()) {
 				// process terminated
 				_processesEx.erase(p->Key);
@@ -166,6 +179,15 @@ void ProcessesView::BuildTable() {
 				count--;
 				continue;
 			}
+			if (!filter.IsEmpty()) {
+				CString name(p->GetImageName().c_str());
+				name.MakeLower();
+				if (name.Find(filter) < 0) {
+					px.Filtered = true;
+					continue;
+				}
+			}
+			indices.push_back(i);
 		}
 
 		auto specs = TableGetSortSpecs();
@@ -178,7 +200,7 @@ void ProcessesView::BuildTable() {
 		const ImVec4 red(1, 0, 0, 1);
 		const ImVec4 green(0, .5f, 0, 1);
 
-		count = static_cast<int>(_processes.size());
+		count = static_cast<int>(indices.size());
 		clipper.Begin(count);
 		auto special = false;
 		static char buffer[64];
@@ -195,10 +217,14 @@ void ProcessesView::BuildTable() {
 		}
 
 		while (clipper.Step()) {
-			for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+			for (int j = clipper.DisplayStart; j < clipper.DisplayEnd; j++) {
+				int i = indices[j];
 				auto& p = _processes[i];
 				auto& px = GetProcessInfoEx(p.get());
-
+				if (px.Filtered) {
+					clipper.ItemsCount--;
+					continue;
+				}
 				TableNextRow();
 
 				if (special)
@@ -231,19 +257,23 @@ void ProcessesView::BuildTable() {
 				}
 
 				if (!_modalOpen) {
-					if (IsKeyPressed(VK_DELETE) && _selectedProcess != nullptr)
+					if (_selectedProcess != nullptr && IsKeyPressed(VK_DELETE) && GetIO().KeyShift)
 						_modalOpen = true;
 
 					if (BeginPopupContextItem(buffer)) {
 						_selectedProcess = p;
 						BuildPriorityClassMenu(p.get());
 						Separator();
-						if (MenuItem("Kill")) {
+						if (MenuItem("Kill", "Shift+DEL")) {
 							_modalOpen = true;
 						}
 						Separator();
 						if (MenuItem("Go to file location")) {
 							GotoFileLocation(_selectedProcess.get());
+						}
+						Separator();
+						if (MenuItem("Properties...")) {
+							GetOrAddProcessProperties(p);
 						}
 						EndPopup();
 					}
@@ -373,6 +403,12 @@ void ProcessesView::BuildTable() {
 
 				if (TableSetColumnIndex(16))
 					TextUnformatted(ProcessAttributesToString(px.GetAttributes(_pm)));
+
+				if (TableSetColumnIndex(17)) {
+					PushFont(g.MonoFont);
+					Text("%9s K", FormatHelper::FormatWithCommas(p->PagedPoolUsage >> 10));
+					PopFont();
+				}
 			}
 		}
 		if (special)
@@ -401,15 +437,6 @@ void ProcessesView::BuildViewMenu() {
 	}
 }
 
-void ProcessesView::BuildFileMenu() {
-	if (BeginMenu("File")) {
-		if (MenuItem("Exit", nullptr, nullptr)) {
-			::PostQuitMessage(0);
-		}
-		ImGui::EndMenu();
-	}
-}
-
 void ProcessesView::BuildProcessMenu() {
 	if (BeginMenu("Process")) {
 		if (_selectedProcess) {
@@ -428,12 +455,62 @@ void ProcessesView::BuildProcessMenu() {
 
 void ProcessesView::BuildToolBar() {
 	Separator();
-	if (ButtonEnabled("Kill", _selectedProcess != nullptr)) {
+	SetNextItemWidth(100);
+	if (GetIO().KeyCtrl && IsKeyPressed('F'))
+		SetKeyboardFocusHere();
+
+	InputText("Filter", _filterText, _countof(_filterText), ImGuiInputTextFlags_AutoSelectAll);
+
+	SameLine();
+	if (Button("Clear")) {
+		*_filterText = 0;
+	}
+
+	SameLine(0, 20);
+	PushStyleColor(ImGuiCol_Button, StandardColors::DarkRed);
+	PushStyleColor(ImGuiCol_Text, StandardColors::White);
+	if (ButtonEnabled("Kill", _selectedProcess != nullptr, ImVec2(40, 0))) {
 		bool success;
 		TryKillProcess(_selectedProcess.get(), success);
 	}
+	PopStyleColor(2);
 	SameLine();
-	bool open = Button("Colors");
+	static const struct {
+		const char* Text;
+		int Interval;
+	} intervals[] = {
+		{ "500 msec", 500 },
+		{ "1 Second", 1000 },
+		{ "2 Seconds", 2000 },
+		{ "5 Seconds", 5000 },
+		{ "Paused", 0 },
+	};
+	int current;
+	for (int i = 0; i < _countof(intervals); i++) {
+		if (intervals[i].Interval == _updateInterval) {
+			current = i;
+			break;
+		}
+	}
+	Text("Update Interval"); SameLine(0, 6);
+	SetNextItemWidth(100);
+	if (BeginCombo("##Update Interval", intervals[current].Text, ImGuiComboFlags_None)) {
+		for (auto& item : intervals) {
+			if (item.Interval == 0)
+				break;
+			if (MenuItem(item.Text, nullptr, _updateInterval == item.Interval)) {
+				_updateInterval = item.Interval;
+			}
+		}
+		Separator();
+		if (MenuItem("Paused", "SPACE", _updateInterval == 0)) {
+			TogglePause();
+		}
+		EndCombo();
+	}
+
+	SameLine();
+	bool open = Button("Colors", ImVec2(60, 0));
 	if (open)
 		OpenPopup("colors");
 
@@ -504,12 +581,38 @@ bool ProcessesView::GotoFileLocation(WinSys::ProcessInfo* pi) {
 }
 
 void ProcessesView::TogglePause() {
-	if (_updateInterval == 0)
+	if (_updateInterval == 0) {
 		_updateInterval = _oldInterval;
+	}
 	else {
 		_oldInterval = _updateInterval;
 		_updateInterval = 0;
 	}
+}
+
+void ProcessesView::BuildPropertiesWindow(ProcessProperties* props) {
+	SetNextWindowSizeConstraints(ImVec2(300, 200), GetIO().DisplaySize);
+	SetNextWindowSize(ImVec2(GetIO().DisplaySize.x / 2, 300), ImGuiCond_Once);
+	if (Begin(props->GetName().c_str(), &props->WindowOpen, ImGuiWindowFlags_None)) {
+	}
+	End();
+}
+
+std::shared_ptr<ProcessProperties> ProcessesView::GetProcessProperties(WinSys::ProcessInfo* pi) {
+	auto it = _processProperties.find(pi->Key);
+	return it == _processProperties.end() ? nullptr : it->second;
+}
+
+std::shared_ptr<ProcessProperties> ProcessesView::GetOrAddProcessProperties(const std::shared_ptr<WinSys::ProcessInfo>& pi) {
+	auto props = GetProcessProperties(pi.get());
+	if (props == nullptr) {
+		CStringA name;
+		name.Format("%ws (%u) Properties##%lld", pi->GetImageName().c_str(), pi->Id, pi->CreateTime);
+		props = std::make_shared<ProcessProperties>(std::string(name), pi);
+		_processProperties.insert({ pi->Key, props });
+		_tm.AddWindow(props);
+	}
+	return props;
 }
 
 CStringA ProcessesView::ProcessAttributesToString(ProcessAttributes attributes) {

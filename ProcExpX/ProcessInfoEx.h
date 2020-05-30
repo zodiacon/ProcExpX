@@ -36,6 +36,8 @@ public:
 	void Term(uint32_t ms);
 	const std::wstring& GetExecutablePath() const;
 
+	bool Filtered{ false };
+
 private:
 	DWORD64 _expiryTime;
 	WinSys::ProcessInfo* _pi;

@@ -1,15 +1,16 @@
+#include "pch.h"
 #include "SortHelper.h"
 
-//bool SortHelper::SortStrings(const CString& s1, const CString& s2, bool ascending) {
-//	if (s1.IsEmpty() && s2.IsEmpty())
-//		return false;
-//	if (s1.IsEmpty())
-//		return false;
-//	if (s2.IsEmpty())
-//		return true;
-//
-//	return ascending ? s2.CompareNoCase(s1) > 0 : s2.CompareNoCase(s1) < 0;
-//}
+bool SortHelper::SortStrings(const CString& s1, const CString& s2, bool ascending) {
+	if (s1.IsEmpty() && s2.IsEmpty())
+		return false;
+	if (s1.IsEmpty())
+		return false;
+	if (s2.IsEmpty())
+		return true;
+
+	return ascending ? s2.CompareNoCase(s1) > 0 : s2.CompareNoCase(s1) < 0;
+}
 
 bool SortHelper::SortStrings(const std::string& s1, const std::string& s2, bool ascending) {
 	if (s1.empty() && s2.empty())

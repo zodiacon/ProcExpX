@@ -1,5 +1,5 @@
+#include "pch.h"
 #include "FormatHelper.h"
-#include <atltime.h>
 
 CString FormatHelper::TimeSpanToString(int64_t ts) {
 	auto str = CTimeSpan(ts / 10000000).Format(L"%D.%H:%M:%S");
@@ -17,4 +17,8 @@ CStringA FormatHelper::FormatWithCommas(long long size) {
 		i += 4;
 	}
 	return result;
+}
+
+ImVec4 FormatHelper::ColorWithAlpha(const ImVec4& color, float alpha) {
+	return ImVec4(color.x, color.y, color.z, alpha);
 }

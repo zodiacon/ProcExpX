@@ -1,6 +1,5 @@
-#include <Windows.h>
+#include "pch.h"
 #include "TabManager.h"
-#include "imgui.h"
 #include "Globals.h"
 
 using namespace ImGui;

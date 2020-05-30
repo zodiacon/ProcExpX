@@ -1,18 +1,14 @@
+#include "pch.h"
 #include "ProcessesView.h"
-#include "imgui.h"
-#include <Windows.h>
-#include <TlHelp32.h>
-#include <atlbase.h>
 #include <algorithm>
 #include "SortHelper.h"
-#include <atltime.h>
-#include <strsafe.h>
 #include "Processes.h"
 #include "TabManager.h"
 #include <shellapi.h>
 #include "FormatHelper.h"
 #include "ImGuiExt.h"
 #include "Globals.h"
+#include "colors.h"
 
 using namespace ImGui;
 
@@ -52,6 +48,7 @@ void ProcessesView::DoSort(int col, bool asc) {
 			case 13: return SortHelper::SortNumbers(p1->PeakThreads, p2->PeakThreads, asc);
 			case 14: return SortHelper::SortNumbers(p1->VirtualSize, p2->VirtualSize, asc);
 			case 15: return SortHelper::SortNumbers(p1->PeakWorkingSetSize, p2->PeakWorkingSetSize, asc);
+			case 16: return SortHelper::SortNumbers(GetProcessInfoEx(p1.get()).GetAttributes(_pm), GetProcessInfoEx(p2.get()).GetAttributes(_pm), asc);
 
 		}
 		return false;
@@ -224,7 +221,7 @@ void ProcessesView::BuildTable() {
 				}
 
 				TableSetColumnIndex(0);
-				str.Format("%ws", p->GetImageName().c_str());
+				str.Format("%ws##%d", p->GetImageName().c_str(), i);
 				Selectable(str, false, ImGuiSelectableFlags_SpanAllColumns);
 
 				::StringCchPrintfA(buffer, sizeof(buffer), "##%d", i);
@@ -276,7 +273,7 @@ void ProcessesView::BuildTable() {
 						str.Format("%7.2f  ", value);
 						ImVec4 color;
 						auto customColors = p->Id && value > 1.0f;
-						if(customColors) {
+						if (customColors) {
 							color = ImColor::HSV((100 - value) * 50 / 100 / 255.0f, .7f, .4f).Value;
 						}
 						else {
@@ -434,6 +431,31 @@ void ProcessesView::BuildToolBar() {
 	if (ButtonEnabled("Kill", _selectedProcess != nullptr)) {
 		bool success;
 		TryKillProcess(_selectedProcess.get(), success);
+	}
+	SameLine();
+	bool open = Button("Colors");
+	if (open)
+		OpenPopup("colors");
+
+	if (BeginPopup("colors", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+		auto& colors = Globals::Get().GetSettings().ProcessColors;
+
+		for (auto& c : colors) {
+			Checkbox(c.Name, &c.Enabled);
+			SameLine(150);
+			ColorEdit4("Background##" + c.Name, (float*)&c.Color, ImGuiColorEditFlags_NoInputs);
+			SameLine();
+			if (Button("Reset##" + c.Name))
+				c.Color = c.DefaultColor;
+
+			SameLine();
+			ColorEdit4("Text##" + c.Name, (float*)&c.TextColor, ImGuiColorEditFlags_NoInputs);
+			SameLine();
+			if (Button("Reset##Text" + c.Name))
+				c.TextColor = c.DefaultTextColor;
+		}
+
+		EndPopup();
 	}
 }
 

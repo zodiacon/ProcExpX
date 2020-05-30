@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Globals.h"
 #include <assert.h>
 
@@ -18,4 +19,8 @@ HWND Globals::GetMainHwnd() const {
 
 TabManager& Globals::GetTabManager() {
 	return *_tabs;
+}
+
+Settings& Globals::GetSettings() {
+	return _settings;
 }

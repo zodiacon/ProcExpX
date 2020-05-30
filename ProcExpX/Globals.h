@@ -1,9 +1,8 @@
 #pragma once
 
-#include <Windows.h>
 #include "ProcessManager.h"
 #include "TabManager.h"
-#include <memory>
+#include "Settings.h"
 
 struct ImFont;
 
@@ -18,8 +17,10 @@ public:
 
 	WinSys::ProcessManager ProcMgr;
 	TabManager& GetTabManager();
+	Settings& GetSettings();
 
 private:
+	Settings _settings;
 	inline static Globals* _globals{ nullptr };
 	std::unique_ptr<TabManager> _tabs;
 	HWND _hwnd;

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <memory>
 #include <ProcessInfo.h>
-#include "imgui.h"
 
 class WinSys::ProcessManager;
 
@@ -42,7 +40,6 @@ private:
 	DWORD64 _expiryTime;
 	WinSys::ProcessInfo* _pi;
 	mutable std::wstring _executablePath;
-	mutable ImVec4 _color{}, _textColor{};
 	mutable ProcessAttributes _attributes = ProcessAttributes::NotComputed;
 	mutable 
 	bool _isNew : 1 = false, _isTerminated : 1 = false;

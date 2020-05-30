@@ -1,55 +1,43 @@
-#include <Windows.h>
+#include "pch.h"
 #include "ProcessInfoEx.h"
 #include "Processes.h"
 #include "colors.h"
 #include "ProcessManager.h"
+#include "Globals.h"
+#include "Settings.h"
+#include "ProcessColor.h"
 
 std::pair<const ImVec4&, const ImVec4&> ProcessInfoEx::GetColors(WinSys::ProcessManager& pm) const {
 	using namespace ImGui;
-	static const ImVec4 red(.8f, 0, 0, .8f), green(0, .6f, 0, .8f);
-	static const ImVec4 white(1, 1, 1, 1), black(0, 0, 0, 1);
+	auto& colors = Globals::Get().GetSettings().ProcessColors;
 
-	if (IsTerminated())
-		return { red, white };
-	if (IsNew())
-		return { green, white };
+	if (colors[Settings::DeletedObjects].Enabled && IsTerminated())
+		return { colors[Settings::DeletedObjects].Color, colors[Settings::DeletedObjects].TextColor };
 
-	if (_color.w == 0) {
-		auto attributes = GetAttributes(pm);
-		auto alpha = .7f;
-		if ((attributes & ProcessAttributes::Managed) == ProcessAttributes::Managed) {
-			_color = ImVec4(1, 1, 0, alpha);
-			_textColor = black;
-		}
-		else if ((attributes & ProcessAttributes::Protected) == ProcessAttributes::Protected) {
-			_color = ImVec4(.7f, 0, .7f, alpha);
-			_textColor = white;
-		}
-		else if ((attributes & ProcessAttributes::Immersive) == ProcessAttributes::Immersive) {
-			_color = StandardColors::Cyan; //ImVec4(.5, .7f, .9f, alpha);
-			_color.w = alpha;
-			_textColor = black;
-		}
-		else if ((attributes & ProcessAttributes::Secure) == ProcessAttributes::Secure) {
-			_color = ImVec4(.6f, .2f, .7f, alpha);
-			_textColor = black;
-		}
-		else if ((attributes & ProcessAttributes::Service) == ProcessAttributes::Service) {
-			_color = StandardColors::Pink;
-			_color.w = alpha;
-			_textColor = black;
-		}
-		else if ((attributes & ProcessAttributes::InJob) == ProcessAttributes::InJob) {
-			_color = StandardColors::Brown;
-			_color.w = alpha;
-			_textColor = white;
-		}
+	if (colors[Settings::NewObjects].Enabled && IsNew())
+		return { colors[Settings::NewObjects].Color, colors[Settings::NewObjects].TextColor };
+
+	auto attributes = GetAttributes(pm);
+	if (colors[Settings::Manageed].Enabled && (attributes & ProcessAttributes::Managed) == ProcessAttributes::Managed) {
+		return { colors[Settings::Manageed].Color, colors[Settings::Manageed].TextColor };
 	}
-	if (_color.w == 0) {
-		_color = ImVec4(-1, 0, 0, 0);
+	if (colors[Settings::Immersive].Enabled && (attributes & ProcessAttributes::Immersive) == ProcessAttributes::Immersive) {
+		return { colors[Settings::Immersive].Color, colors[Settings::Immersive].TextColor };
+	}
+	if (colors[Settings::Secure].Enabled && (attributes & ProcessAttributes::Secure) == ProcessAttributes::Secure) {
+		return { colors[Settings::Secure].Color, colors[Settings::Secure].TextColor };
+	}
+	if (colors[Settings::Protected].Enabled && (attributes & ProcessAttributes::Protected) == ProcessAttributes::Protected) {
+		return { colors[Settings::Protected].Color, colors[Settings::Protected].TextColor };
+	}
+	if (colors[Settings::Services].Enabled && (attributes & ProcessAttributes::Service) == ProcessAttributes::Service) {
+		return { colors[Settings::Services].Color, colors[Settings::Services].TextColor };
+	}
+	if (colors[Settings::InJob].Enabled && (attributes & ProcessAttributes::InJob) == ProcessAttributes::InJob) {
+		return { colors[Settings::InJob].Color, colors[Settings::InJob].TextColor };
 	}
 
-	return { _color, _textColor };
+	return { ImVec4(-1, 0, 0, 0), ImVec4() };
 }
 
 ProcessAttributes ProcessInfoEx::GetAttributes(WinSys::ProcessManager& pm) const {

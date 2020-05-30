@@ -2,7 +2,7 @@
 // If you are new to dear imgui, see examples/README.txt and documentation at the top of imgui.cpp.
 // FIXME: 64-bit only for now! (Because sizeof(ImTextureId) == sizeof(void*))
 
-#include "imgui.h"
+#include "pch.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx12.h"
 #include <d3d12.h>
@@ -84,7 +84,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR, int) {
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();

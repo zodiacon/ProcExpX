@@ -48,12 +48,14 @@ namespace WinSys {
 
 	class Thread {
 	public:
-		static std::unique_ptr<Thread> OpenById(uint32_t tid, ThreadAccessMask accessMask = ThreadAccessMask::QueryInformation);
+		static std::unique_ptr<Thread> OpenById(uint32_t tid, ThreadAccessMask accessMask = ThreadAccessMask::QueryLimitedInformation);
 		Thread(HANDLE handle, ThreadAccessMask);
 
 		HANDLE GetHandle() const {
 			return _handle.get();
 		}
+
+		bool IsValid() const;
 
 		ThreadPriority GetPriority() const;
 		bool SetPriority(ThreadPriority priority);

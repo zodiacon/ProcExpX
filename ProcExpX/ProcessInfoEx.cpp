@@ -63,6 +63,21 @@ ProcessAttributes ProcessInfoEx::GetAttributes(WinSys::ProcessManager& pm) const
 	return _attributes;
 }
 
+const std::wstring& ProcessInfoEx::UserName() const {
+	if (_username.empty()) {
+		if (_pi->Id <= 4)
+			_username = L"NT AUTHORITY\\SYSTEM";
+		else {
+			auto process = WinSys::Process::OpenById(_pi->Id);
+			if (process)
+				_username = process->GetUserNameW();
+			if(_username.empty())
+				_username = L"<access denied>";
+		}
+	}
+	return _username;
+}
+
 bool ProcessInfoEx::Update() {
 	if (!_isNew && !_isTerminated)
 		return false;

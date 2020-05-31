@@ -30,6 +30,7 @@ public:
 
 	std::pair<const ImVec4&, const ImVec4&> GetColors(WinSys::ProcessManager& pm) const;
 	ProcessAttributes GetAttributes(WinSys::ProcessManager& pm) const;
+	const std::wstring& UserName() const;
 
 	bool Update();
 	void New(uint32_t ms);
@@ -43,7 +44,7 @@ private:
 	WinSys::ProcessInfo* _pi;
 	mutable std::wstring _executablePath;
 	mutable ProcessAttributes _attributes = ProcessAttributes::NotComputed;
-	mutable 
+	mutable std::wstring _username;
 	bool _isNew : 1 = false, _isTerminated : 1 = false;
 };
 

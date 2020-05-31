@@ -35,22 +35,23 @@ void ProcessesView::DoSort(int col, bool asc) {
 		switch (col) {
 			case 0: return SortHelper::SortStrings(p1->GetImageName(), p2->GetImageName(), asc);
 			case 1: return SortHelper::SortNumbers(p1->Id, p2->Id, asc);
-			case 2: return SortHelper::SortNumbers(p1->SessionId, p2->SessionId, asc);
-			case 3: return SortHelper::SortNumbers(p1->CPU, p2->CPU, asc);
-			case 4: return SortHelper::SortNumbers(p1->ParentId, p2->ParentId, asc);
-			case 5: return SortHelper::SortNumbers(p1->CreateTime, p2->CreateTime, asc);
-			case 6: return SortHelper::SortNumbers(p1->PrivatePageCount, p2->PrivatePageCount, asc);
-			case 7: return SortHelper::SortNumbers(p1->BasePriority, p2->BasePriority, asc);
-			case 8: return SortHelper::SortNumbers(p1->ThreadCount, p2->ThreadCount, asc);
-			case 9: return SortHelper::SortNumbers(p1->HandleCount, p2->HandleCount, asc);
-			case 10: return SortHelper::SortNumbers(p1->WorkingSetSize, p2->WorkingSetSize, asc);
-			case 11: return SortHelper::SortStrings(GetProcessInfoEx(p1.get()).GetExecutablePath(), GetProcessInfoEx(p2.get()).GetExecutablePath(), asc);
-			case 12: return SortHelper::SortNumbers(p1->KernelTime + p1->UserTime, p2->KernelTime + p2->UserTime, asc);
-			case 13: return SortHelper::SortNumbers(p1->PeakThreads, p2->PeakThreads, asc);
-			case 14: return SortHelper::SortNumbers(p1->VirtualSize, p2->VirtualSize, asc);
-			case 15: return SortHelper::SortNumbers(p1->PeakWorkingSetSize, p2->PeakWorkingSetSize, asc);
-			case 16: return SortHelper::SortNumbers(GetProcessInfoEx(p1.get()).GetAttributes(_pm), GetProcessInfoEx(p2.get()).GetAttributes(_pm), asc);
-			case 17: return SortHelper::SortNumbers(p1->PagedPoolUsage, p2->PagedPoolUsage, asc);
+			case 2: return SortHelper::SortStrings(GetProcessInfoEx(p1.get()).UserName(), GetProcessInfoEx(p2.get()).UserName(), asc);
+			case 3: return SortHelper::SortNumbers(p1->SessionId, p2->SessionId, asc);
+			case 4: return SortHelper::SortNumbers(p1->CPU, p2->CPU, asc);
+			case 5: return SortHelper::SortNumbers(p1->ParentId, p2->ParentId, asc);
+			case 6: return SortHelper::SortNumbers(p1->CreateTime, p2->CreateTime, asc);
+			case 7: return SortHelper::SortNumbers(p1->PrivatePageCount, p2->PrivatePageCount, asc);
+			case 8: return SortHelper::SortNumbers(p1->BasePriority, p2->BasePriority, asc);
+			case 9: return SortHelper::SortNumbers(p1->ThreadCount, p2->ThreadCount, asc);
+			case 10: return SortHelper::SortNumbers(p1->HandleCount, p2->HandleCount, asc);
+			case 11: return SortHelper::SortNumbers(p1->WorkingSetSize, p2->WorkingSetSize, asc);
+			case 12: return SortHelper::SortStrings(GetProcessInfoEx(p1.get()).GetExecutablePath(), GetProcessInfoEx(p2.get()).GetExecutablePath(), asc);
+			case 13: return SortHelper::SortNumbers(p1->KernelTime + p1->UserTime, p2->KernelTime + p2->UserTime, asc);
+			case 14: return SortHelper::SortNumbers(p1->PeakThreads, p2->PeakThreads, asc);
+			case 15: return SortHelper::SortNumbers(p1->VirtualSize, p2->VirtualSize, asc);
+			case 16: return SortHelper::SortNumbers(p1->PeakWorkingSetSize, p2->PeakWorkingSetSize, asc);
+			case 17: return SortHelper::SortNumbers(GetProcessInfoEx(p1.get()).GetAttributes(_pm), GetProcessInfoEx(p2.get()).GetAttributes(_pm), asc);
+			case 18: return SortHelper::SortNumbers(p1->PagedPoolUsage, p2->PagedPoolUsage, asc);
 
 		}
 		return false;
@@ -111,11 +112,12 @@ void ProcessesView::BuildTable() {
 	auto& g = Globals::Get();
 
 	//(ImVec2(size.x, size.y / 2));
-	if (BeginTable("processes", 18, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_ScrollFreeze2Columns |
+	if (BeginTable("processes", 19, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | 0*ImGuiTableFlags_ScrollFreeze2Columns |
 		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersVFullHeight |
 		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Scroll | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable)) {
 		TableSetupColumn("Name", ImGuiTableColumnFlags_None);
 		TableSetupColumn("Id");
+		TableSetupColumn("User name");
 		TableSetupColumn("Session");
 		TableSetupColumn("CPU (%)");
 		TableSetupColumn("Parent Process", ImGuiTableColumnFlags_None, 180);
@@ -293,10 +295,14 @@ void ProcessesView::BuildTable() {
 				PopFont();
 
 				if (TableSetColumnIndex(2)) {
-					Text("%4u", p->SessionId);
+					Text("%ws", px.UserName().c_str());
 				}
 
 				if (TableSetColumnIndex(3)) {
+					Text("%4u", p->SessionId);
+				}
+
+				if (TableSetColumnIndex(4)) {
 					if (p->CPU > 0 && !px.IsTerminated()) {
 						PushFont(g.MonoFont);
 						auto value = p->CPU / 10000.0f;
@@ -326,7 +332,7 @@ void ProcessesView::BuildTable() {
 					}
 				}
 
-				if (TableSetColumnIndex(4)) {
+				if (TableSetColumnIndex(5)) {
 					if (p->ParentId > 0) {
 						auto parent = _pm.GetProcessById(p->ParentId);
 						if (parent && parent->CreateTime < p->CreateTime) {
@@ -344,67 +350,67 @@ void ProcessesView::BuildTable() {
 					}
 				}
 
-				if (TableSetColumnIndex(5))
-					TextUnformatted(W2CA(CTime(*(FILETIME*)&p->CreateTime).Format(L"%x %X")));
+				if (TableSetColumnIndex(6))
+					Text("%ws", CTime(*(FILETIME*)&p->CreateTime).Format(L"%x %X"));
 
-				if (TableSetColumnIndex(6)) {
+				if (TableSetColumnIndex(7)) {
 					PushFont(g.MonoFont);
 					Text("%12s K", FormatHelper::FormatWithCommas(p->PrivatePageCount >> 10));
 					PopFont();
 				}
 
-				if (TableSetColumnIndex(7)) {
+				if (TableSetColumnIndex(8)) {
 					PushFont(g.MonoFont);
 					Text("%5d", p->BasePriority);
 					PopFont();
 				}
-				if (TableSetColumnIndex(8)) {
+				if (TableSetColumnIndex(9)) {
 					PushFont(g.MonoFont);
 					Text("%6d", p->ThreadCount);
 					PopFont();
 				}
-				if (TableSetColumnIndex(9)) {
+				if (TableSetColumnIndex(10)) {
 					PushFont(g.MonoFont);
 					Text("%6d", p->HandleCount);
 					PopFont();
 				}
-				if (TableSetColumnIndex(10)) {
+				if (TableSetColumnIndex(11)) {
 					PushFont(g.MonoFont);
 					Text("%12s K", FormatHelper::FormatWithCommas(p->WorkingSetSize >> 10));
 					PopFont();
 				}
-				if (TableSetColumnIndex(11))
+				if (TableSetColumnIndex(12))
 					Text("%ws", px.GetExecutablePath().c_str());
 
-				if (TableSetColumnIndex(12)) {
+				if (TableSetColumnIndex(13)) {
 					PushFont(g.MonoFont);
 					auto total = p->UserTime + p->KernelTime;
 					Text("%ws", (PCWSTR)FormatHelper::TimeSpanToString(total));
 					PopFont();
 				}
 
-				if (TableSetColumnIndex(13)) {
+				if (TableSetColumnIndex(14)) {
 					PushFont(g.MonoFont);
 					Text("%6d", p->PeakThreads);
 					PopFont();
 				}
 
-				if (TableSetColumnIndex(14)) {
+				if (TableSetColumnIndex(15)) {
 					PushFont(g.MonoFont);
 					Text("%14s K", FormatHelper::FormatWithCommas(p->VirtualSize >> 10));
 					PopFont();
 				}
 
-				if (TableSetColumnIndex(15)) {
+				if (TableSetColumnIndex(16)) {
 					PushFont(g.MonoFont);
 					Text("%12s K", FormatHelper::FormatWithCommas(p->PeakWorkingSetSize >> 10));
 					PopFont();
 				}
 
-				if (TableSetColumnIndex(16))
+				if (TableSetColumnIndex(17))
 					TextUnformatted(ProcessAttributesToString(px.GetAttributes(_pm)));
 
-				if (TableSetColumnIndex(17)) {
+				if (TableSetColumnIndex(18)) {
 					PushFont(g.MonoFont);
 					Text("%9s K", FormatHelper::FormatWithCommas(p->PagedPoolUsage >> 10));
 					PopFont();

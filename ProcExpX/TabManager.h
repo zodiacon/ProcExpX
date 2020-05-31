@@ -26,5 +26,6 @@ private:
 	std::unordered_map<std::string, std::shared_ptr<WindowProperties>> _windows;
 	ProcessesView _procView;
 	Theme _theme = Theme::Dark;
+	bool _alwaysOnTop;
 };
 

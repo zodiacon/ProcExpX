@@ -12,7 +12,7 @@ void TabManager::BuildTabs() {
 		ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar)) {
 		BuildMainMenu();
 		auto size = GetIO().DisplaySize;
-		auto height = 20.0f;
+		auto height = 21.0f;
 
 		SetWindowSize(ImVec2(size.x, size.y - height), ImGuiCond_Always);
 		SetWindowPos(ImVec2(0, height), ImGuiCond_Always);
@@ -36,9 +36,8 @@ void TabManager::BuildTabs() {
 
 void TabManager::BuildOptionsMenu() {
 	if (BeginMenu("Options")) {
-		static bool alwaysOnTop;
-		if (MenuItem("Always On Top", nullptr, &alwaysOnTop)) {
-			::SetWindowPos(Globals::Get().GetMainHwnd(), !alwaysOnTop ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+		if (MenuItem("Always On Top", nullptr, &_alwaysOnTop)) {
+			::SetWindowPos(Globals::Get().GetMainHwnd(), !_alwaysOnTop ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 		}
 		Separator();
 		if (BeginMenu("Theme")) {

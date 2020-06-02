@@ -24,9 +24,6 @@
     <ClInclude Include="imgui.h">
       <Filter>Imgui</Filter>
     </ClInclude>
-    <ClInclude Include="imgui_impl_dx12.h">
-      <Filter>Imgui</Filter>
-    </ClInclude>
     <ClInclude Include="imgui_impl_win32.h">
       <Filter>Imgui</Filter>
     </ClInclude>
@@ -90,6 +87,9 @@
     <ClInclude Include="WindowProperties.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="imgui_impl_dx11.h">
+      <Filter>Imgui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -102,9 +102,6 @@
       <Filter>Imgui</Filter>
     </ClCompile>
     <ClCompile Include="imgui_draw.cpp">
-      <Filter>Imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="imgui_impl_dx12.cpp">
       <Filter>Imgui</Filter>
     </ClCompile>
     <ClCompile Include="imgui_impl_win32.cpp">
@@ -154,6 +151,9 @@
     </ClCompile>
     <ClCompile Include="WindowProperties.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_dx11.cpp">
+      <Filter>Imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

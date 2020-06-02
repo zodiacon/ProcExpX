@@ -13,7 +13,7 @@ CStringA FormatHelper::FormatWithCommas(long long size) {
 	result.Format("%lld", size);
 	int i = 3;
 	while (result.GetLength() - i > 0) {
-		result = result.Left(result.GetLength() - i) + L"," + result.Right(i);
+		result = result.Left(result.GetLength() - i) + "," + result.Right(i);
 		i += 4;
 	}
 	return result;

@@ -113,7 +113,7 @@ void ProcessesView::BuildTable() {
 
 	//(ImVec2(size.x, size.y / 2));
 	if (BeginTable("processes", 19, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | 0*ImGuiTableFlags_ScrollFreeze2Columns |
-		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersVFullHeight |
+		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersFullHeightV |
 		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Scroll | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable)) {
 		TableSetupColumn("Name", ImGuiTableColumnFlags_None);
 		TableSetupColumn("Id");

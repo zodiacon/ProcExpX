@@ -112,9 +112,9 @@ void ProcessesView::BuildTable() {
 	auto& g = Globals::Get();
 
 	//(ImVec2(size.x, size.y / 2));
-	if (BeginTable("processes", 19, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | 0*ImGuiTableFlags_ScrollFreeze2Columns |
-		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollFreezeTopRow | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersFullHeightV |
-		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_Scroll | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable)) {
+	if (BeginTable("processes", 19, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_BordersH | 
+		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollX | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersV |
+		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable)) {
 		TableSetupColumn("Name", ImGuiTableColumnFlags_None);
 		TableSetupColumn("Id");
 		TableSetupColumn("User name");
@@ -135,7 +135,8 @@ void ProcessesView::BuildTable() {
 		TableSetupColumn("Attributes");
 		TableSetupColumn("Paged Pool");
 
-		TableAutoHeaders();
+		//TableAutoHeaders();
+		TableHeadersRow();
 
 		if (IsKeyPressed(VK_SPACE)) {
 			TogglePause();
@@ -193,7 +194,7 @@ void ProcessesView::BuildTable() {
 		}
 
 		auto specs = TableGetSortSpecs();
-		if (specs && specs->SpecsChanged) {
+		if (specs && specs->SpecsDirty) {
 			_specs = specs->Specs;
 			DoSort(_specs->ColumnIndex, _specs->SortDirection == ImGuiSortDirection_Ascending);
 		}

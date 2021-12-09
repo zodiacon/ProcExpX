@@ -15,7 +15,7 @@ void TabManager::BuildTabs() {
 		auto height = 21.0f;
 
 		SetWindowSize(ImVec2(size.x, size.y - height), ImGuiCond_Always);
-		SetWindowPos(ImVec2(0, height), ImGuiCond_Always);
+		//SetWindowPos(ImVec2(0, height), ImGuiCond_Always);
 
 		if (BeginTabBar("tabs", ImGuiTabBarFlags_Reorderable)) {
 			if (BeginTabItem("Processes", nullptr, ImGuiTabItemFlags_None)) {

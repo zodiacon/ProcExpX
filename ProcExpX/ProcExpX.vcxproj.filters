@@ -155,6 +155,9 @@
     <ClCompile Include="imgui_impl_dx11.cpp">
       <Filter>Imgui</Filter>
     </ClCompile>
+    <ClCompile Include="imgui_tables.cpp">
+      <Filter>Imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

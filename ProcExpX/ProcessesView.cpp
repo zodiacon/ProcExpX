@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "imgui.h"
 #include "ProcessesView.h"
 #include <algorithm>
 #include "SortHelper.h"
@@ -112,22 +113,23 @@ void ProcessesView::BuildTable() {
 	auto& g = Globals::Get();
 
 	//(ImVec2(size.x, size.y / 2));
-	if (BeginTable("processes", 19, ImGuiTableFlags_BordersV | ImGuiTableFlags_Sortable | ImGuiTableFlags_BordersH | 
-		ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollX | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersV |
-		ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable)) {
-		TableSetupColumn("Name", ImGuiTableColumnFlags_None);
-		TableSetupColumn("Id");
+	if (BeginTable("processes", 19, ImGuiTableFlags_BordersV*0 | ImGuiTableFlags_Sortable | ImGuiTableFlags_BordersH | 
+		ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | 0*ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | 
+		ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable)) {
+		TableSetupScrollFreeze(2, 1);
+		TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_NoReorder);
+		TableSetupColumn("Id", ImGuiTableColumnFlags_NoHide | ImGuiTableColumnFlags_NoReorder);
 		TableSetupColumn("User name");
 		TableSetupColumn("Session");
 		TableSetupColumn("CPU (%)");
-		TableSetupColumn("Parent Process", ImGuiTableColumnFlags_None, 180);
-		TableSetupColumn("Created", ImGuiTableColumnFlags_WidthFixed);
+		TableSetupColumn("Parent Process", ImGuiTableColumnFlags_None);
+		TableSetupColumn("Created", ImGuiTableColumnFlags_NoResize);
 		TableSetupColumn("Private Bytes");
 		TableSetupColumn("Priority");
 		TableSetupColumn("Threads");
 		TableSetupColumn("Handles");
 		TableSetupColumn("Working Set");
-		TableSetupColumn("Executable Path", ImGuiTableColumnFlags_None, 200);
+		TableSetupColumn("Executable Path", ImGuiTableColumnFlags_None);
 		TableSetupColumn("CPU Time");
 		TableSetupColumn("Peak Threads");
 		TableSetupColumn("Virtual Size");
@@ -197,11 +199,10 @@ void ProcessesView::BuildTable() {
 		if (specs && specs->SpecsDirty) {
 			_specs = specs->Specs;
 			DoSort(_specs->ColumnIndex, _specs->SortDirection == ImGuiSortDirection_Ascending);
+			specs->SpecsDirty = false;
 		}
 		USES_CONVERSION;
 		ImGuiListClipper clipper;
-		const ImVec4 red(1, 0, 0, 1);
-		const ImVec4 green(0, .5f, 0, 1);
 
 		count = static_cast<int>(indices.size());
 		clipper.Begin(count);

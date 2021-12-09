@@ -1,5 +1,6 @@
 #pragma once
 
+#include "imgui.h"
 #include <ProcessInfo.h>
 
 class WinSys::ProcessManager;

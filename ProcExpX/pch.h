@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Windows.h>
-#include "imgui.h"
 #include <atlbase.h>
 #include <atlstr.h>
 #include <atltime.h>

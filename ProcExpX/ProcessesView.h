@@ -42,7 +42,7 @@ private:
 	std::vector<std::shared_ptr<WinSys::ProcessInfo>> _processes;
 	mutable std::unordered_map<WinSys::ProcessOrThreadKey, ProcessInfoEx> _processesEx;
 	std::unordered_map<WinSys::ProcessOrThreadKey, std::shared_ptr<ProcessProperties>> _processProperties;
-	const ImGuiTableSortSpecsColumn* _specs = nullptr;
+	const ImGuiTableColumnSortSpecs* _specs = nullptr;
 	std::shared_ptr <WinSys::ProcessInfo> _selectedProcess;
 	int _updateInterval = 1000, _oldInterval;
 	TabManager& _tm;

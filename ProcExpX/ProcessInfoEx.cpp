@@ -6,6 +6,8 @@
 #include "Globals.h"
 #include "Settings.h"
 #include "ProcessColor.h"
+#include <wincodec.h>
+#include "resource.h"
 
 std::pair<const ImVec4&, const ImVec4&> ProcessInfoEx::GetColors(WinSys::ProcessManager& pm) const {
 	using namespace ImGui;
@@ -114,4 +116,61 @@ const std::wstring& ProcessInfoEx::GetExecutablePath() const {
 		}
 	}
 	return _executablePath;
+}
+
+ID3D11ShaderResourceView* ProcessInfoEx::Icon() const {
+	if (m_spIcon == nullptr) {
+		static HICON hAppIcon = ::LoadIcon(nullptr, IDI_APPLICATION);
+		extern ID3D11Device* g_pd3dDevice;
+		extern ID3D11DeviceContext* g_pd3dDeviceContext;
+
+		UINT width, height;
+		CComPtr<IWICImagingFactory> spFactory;
+		spFactory.CoCreateInstance(CLSID_WICImagingFactory);
+		CComPtr<IWICBitmap> spBitmap;
+		auto& path = GetExecutablePath();
+		auto hIcon = ::ExtractIcon(nullptr, path.c_str(), 0);
+		if (!hIcon)
+			hIcon = hAppIcon;
+		ATLASSERT(hIcon);
+		spFactory->CreateBitmapFromHICON(hIcon, &spBitmap);
+		if (hIcon != hAppIcon)
+			::DestroyIcon(hIcon);
+		spBitmap->GetSize(&width, &height);
+
+		// Create texture
+		D3D11_TEXTURE2D_DESC desc;
+		ZeroMemory(&desc, sizeof(desc));
+		desc.Width = width;
+		desc.Height = height;
+		desc.MipLevels = 1;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.Usage = D3D11_USAGE_DEFAULT;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.CPUAccessFlags = 0;
+
+		CComPtr<ID3D11Texture2D> pTexture;
+		D3D11_SUBRESOURCE_DATA subResource;
+		CComPtr<IWICBitmapLock> spLock;
+		spBitmap->Lock(nullptr, WICBitmapLockRead, &spLock);
+		UINT size;
+		WICInProcPointer ptr;
+		spLock->GetDataPointer(&size, &ptr);
+		subResource.pSysMem = ptr;
+		subResource.SysMemPitch = desc.Width * 4;
+		subResource.SysMemSlicePitch = 0;
+		g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+
+		// Create texture view
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		ZeroMemory(&srvDesc, sizeof(srvDesc));
+		srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;	//DXGI_FORMAT_R8G8B8A8_UNORM;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MipLevels = desc.MipLevels;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &m_spIcon);
+	}
+	return m_spIcon.p;
 }

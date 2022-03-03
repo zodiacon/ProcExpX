@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include <ProcessInfo.h>
+#include <d3d11_1.h>
 
 class WinSys::ProcessManager;
 
@@ -37,10 +38,12 @@ public:
 	void New(uint32_t ms);
 	void Term(uint32_t ms);
 	const std::wstring& GetExecutablePath() const;
+	ID3D11ShaderResourceView* Icon() const;
 
 	bool Filtered{ false };
 
 private:
+	mutable CComPtr<ID3D11ShaderResourceView> m_spIcon;
 	DWORD64 _expiryTime;
 	WinSys::ProcessInfo* _pi;
 	mutable std::wstring _executablePath;

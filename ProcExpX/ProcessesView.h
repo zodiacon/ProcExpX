@@ -4,6 +4,7 @@
 #include "ProcessInfoEx.h"
 #include "MessageBox.h"
 #include "ProcessProperties.h"
+#include <d3d11_1.h>
 
 struct ImGuiTableSortSpecsColumn;
 class TabManager;
@@ -36,6 +37,7 @@ private:
 	static CStringA ProcessAttributesToString(ProcessAttributes attributes);
 	
 private:
+	CComPtr<ID3D11ShaderResourceView> m_spImage;
 	WinSys::ProcessManager& _pm;
 	DWORD64 _tick = 0;
 	char _filterText[16]{};

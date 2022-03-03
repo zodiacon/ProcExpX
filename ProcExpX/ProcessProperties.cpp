@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "ProcessProperties.h"
+#include "Processes.h"
 
 ProcessProperties::ProcessProperties(std::string name, std::shared_ptr<WinSys::ProcessInfo> pi) 
 	: WindowProperties(std::move(name)), _pi(std::move(pi)) {
@@ -8,3 +9,4 @@ ProcessProperties::ProcessProperties(std::string name, std::shared_ptr<WinSys::P
 WinSys::ProcessInfo* ProcessProperties::GetProcess() const {
 	return _pi.get();
 }
+

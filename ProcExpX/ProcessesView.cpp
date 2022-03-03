@@ -10,10 +10,59 @@
 #include "ImGuiExt.h"
 #include "Globals.h"
 #include "colors.h"
+#include <WICTextureLoader.h>
+#include <wincodec.h>
+#include "resource.h"
 
 using namespace ImGui;
+extern ID3D11Device* g_pd3dDevice;
+extern ID3D11DeviceContext* g_pd3dDeviceContext;
+
+bool LoadTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height);
 
 ProcessesView::ProcessesView(TabManager& tm) : _tm(tm), _pm(Globals::Get().ProcMgr) {
+	UINT width, height;
+	CComPtr<IWICImagingFactory> spFactory;
+	spFactory.CoCreateInstance(CLSID_WICImagingFactory);
+	CComPtr<IWICBitmap> spBitmap;
+	spFactory->CreateBitmapFromHICON(::LoadIcon(::GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_APP)), &spBitmap);
+	spBitmap->GetSize(&width, &height);
+
+	// Create texture
+	D3D11_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = width;
+	desc.Height = height;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = 0;
+
+	CComPtr<ID3D11Texture2D> pTexture;
+	D3D11_SUBRESOURCE_DATA subResource;
+	CComPtr<IWICBitmapLock> spLock;
+	spBitmap->Lock(nullptr, WICBitmapLockRead, &spLock);
+	UINT size;
+	WICInProcPointer ptr;
+	spLock->GetDataPointer(&size, &ptr);
+	subResource.pSysMem = ptr;
+	subResource.SysMemPitch = desc.Width * 4;
+	subResource.SysMemSlicePitch = 0;
+	g_pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
+
+	// Create texture view
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+	srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;	//DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = desc.MipLevels;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &m_spImage);
+
+	//LoadTextureFromFile("c:\\temp\\apple.png", &m_spImage, &width, &height);
 }
 
 void ProcessesView::BuildWindow() {
@@ -219,7 +268,6 @@ void ProcessesView::BuildTable() {
 			if (MessageBoxResult::StillOpen != SimpleMessageBox::ShowModal("Kill Process", "Failed to kill process!"))
 				_killFailed = false;
 		}
-
 		while (clipper.Step()) {
 			for (int j = clipper.DisplayStart; j < clipper.DisplayEnd; j++) {
 				int i = indices[j];
@@ -250,7 +298,11 @@ void ProcessesView::BuildTable() {
 					}
 				}
 
+				//if (m_spImage == nullptr) {
+				//	DirectX::CreateWICTextureFromFile(g_pd3dDevice, g_pd3dDeviceContext, L"c:\\temp\\apple.png", nullptr, &m_spImage);
+				//}
 				TableSetColumnIndex(0);
+				Image(px.Icon(), ImVec2(16, 16)); SameLine();
 				str.Format("%ws##%d", p->GetImageName().c_str(), i);
 				Selectable(str, false, ImGuiSelectableFlags_SpanAllColumns);
 
@@ -477,6 +529,7 @@ void ProcessesView::BuildToolBar() {
 	SameLine(0, 20);
 	PushStyleColor(ImGuiCol_Button, StandardColors::DarkRed);
 	PushStyleColor(ImGuiCol_Text, StandardColors::White);
+
 	if (ButtonEnabled("Kill", _selectedProcess != nullptr, ImVec2(40, 0))) {
 		bool success;
 		TryKillProcess(_selectedProcess.get(), success);
